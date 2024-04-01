@@ -8,13 +8,40 @@ exports.addVector = async (req, res) => {
       router.post('/chat/add', chatController.addVector);
     --------------------------------------------------
         `)
-    console.log(req.body.company, req.files);
+
     try {
-        save_vector(req.files[0], req.body.company);
+        for (file of req.files) {
+            await save_vector(file.path, req.body.company);
+        }
+        return res.status(200).json({
+            status: true
+        })
     } catch (err) {
         console.error("[ ERROR ]", err);
         return res.status(500).send({
             message: "An error occured while adding vector"
+        })
+    }
+}
+
+
+exports.chatGPT = async (req, res) => {
+    console.log(`
+    --------------------------------------------------
+      User : 
+      API  : 
+      router.post('/chat', chatController.chatGPT);
+    --------------------------------------------------
+        `)
+    console.log(req.body);
+    try {
+        return res.status(200).json({
+            status: true
+        })
+    } catch (err) {
+        console.error("[ ERROR ]", err);
+        return res.status(500).send({
+            message: "An error occured while chating with GPT"
         })
     }
 }

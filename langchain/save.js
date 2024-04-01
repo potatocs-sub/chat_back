@@ -1,65 +1,52 @@
 
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
-import { CohereEmbeddings } from "@langchain/cohere";
-import { MongoClient } from "mongodb";
+const { OpenAIEmbeddings } = require("@langchain/openai");
+const { PDFLoader } = require("langchain/document_loaders/fs/pdf");
+const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
+const { MongoDBAtlasVectorSearch } = require("@langchain/mongodb");
+const { MongoClient } = require("mongodb");
 
 // mongodb 세팅
-
-const namespace = "langchain.test";
-const [dbName, collectionName] = namespace.split(".");
-const collection = client.db(dbName).collection(collectionName);
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 
-const loader = new PDFLoader("./인천남동구행복주택예비입주자모집.pdf");
-const pages = await loader.loadAndSplit();
-// console.log(pages);
-const text_splitter = new RecursiveCharacterTextSplitter(
-    {
-        chunkSize: 100,
-        chunkOverlap: 90,
+exports.save_vector = async (file, company) => {
+
+    const client = new MongoClient(process.env.MONGODB_URI || "");
+
+    const collection = client.db("langchain").collection("test");
+
+
+    const loader = new PDFLoader(file);
+
+    const pages = await loader.load();
+
+    for (let page of pages) {
+        page.metadata['company'] = company
     }
-)
-const texts = await text_splitter.splitDocuments(pages);
-// const embedding = new OpenAIEmbeddings({ openAIApiKey: OPENAI_API_KEY })
-const embedding = new CohereEmbeddings({ apiKey: COHERE_API_KEY })
 
 
-// 정리 1 : 
-// const vectorstore = await MongoDBAtlasVectorSearch.fromDocuments(
-//     texts, embedding, {
-//     collection,
-//     indexName: "vector_index", // The name of the Atlas search index. Defaults to "default"
-//     textKey: "text", // The name of the collection field containing the raw content. Defaults to "text"
-//     embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
-// }
-// )
+    const text_splitter = new RecursiveCharacterTextSplitter(
+        {
+            chunkSize: 200,
+            chunkOverlap: 20,
+        }
+    )
+    const texts = await text_splitter.splitDocuments(pages);
+
+    // console.log(texts)
+
+    const embedding = new OpenAIEmbeddings({ openAIApiKey: OPENAI_API_KEY })
 
 
-const vectorStore = new MongoDBAtlasVectorSearch(embedding, {
-    collection,
-    indexName: "vector_index", // The name of the Atlas search index. Defaults to "default"
-    textKey: "text", // The name of the collection field containing the raw content. Defaults to "text"
-    embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
-});
-const resultOne = await vectorStore.similaritySearch("임대 문의", 20);
-console.log(resultOne);
+    // 정리 1 : 
+    const vectorstore = await MongoDBAtlasVectorSearch.fromDocuments(
+        texts, embedding, {
+        collection,
+        indexName: "vector_index", // The name of the Atlas search index. Defaults to "default"
+        textKey: "text", // The name of the collection field containing the raw content. Defaults to "text"
+        embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
+    }
+    )
 
-
-// console.log(vectorstore)
-// const vectorStore = new MongoDBAtlasVectorSearch(new OpenAIEmbeddings({ openAIApiKey: OPENAI_API_KEY }), {
-//     collection,
-//     indexName: "vector_index", // The name of the Atlas search index. Defaults to "default"
-//     textKey: "text", // The name of the collection field containing the raw content. Defaults to "text"
-//     embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
-// });
-
-
-
-// const resultOne = await vectorStore.similaritySearch("Hello", 1);
-// console.log(resultOne);
-
-await client.close();
+    await client.close();
+}
