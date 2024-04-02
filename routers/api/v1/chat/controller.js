@@ -1,4 +1,5 @@
 const { save_vector } = require('../../../../langchain/save');
+const { chatGPT } = require('../../../../langchain/chat');
 
 exports.addVector = async (req, res) => {
     console.log(`
@@ -34,8 +35,12 @@ exports.chatGPT = async (req, res) => {
     --------------------------------------------------
         `)
     console.log(req.body);
+    const { question, history, company } = req.body;
+
     try {
+        const answer = await chatGPT(question, history, company);
         return res.status(200).json({
+            answer,
             status: true
         })
     } catch (err) {
