@@ -42,7 +42,7 @@ const answerTemplate = `Write the final answer given the following extraction fr
 If you don't know the answer, answer that you don't know. Don't make up the answer.
 Respectfully answer that if the question is context-related, it is adjusted to answer only context-related questions.
 Answer the question based on the context below, and say "I don't know" if you can't answer the question based on the context.
-If you don't have any context, you should say "관련된 문서가 없습니다.".
+
 
 You have to answer in Korean only.
 
@@ -54,6 +54,7 @@ Question: ai 뷰가드 업데이트 방법에 대해서 알려주세요
 Answer: 뷰가드 AI 업데이트 방법은 다음과 같습니다. 먼저, 스마트 러닝사이트 공유자료실에서 Firmware 메뉴로 이동하여 81번 뷰가드 AI 2단계 NVR 매뉴얼 및 펌웨어를 다운로드해야 합니다. 그리고 업그레이드를 위해 펌웨어 파일명을 변경해야 하며, 업그레이드 완료 후 모델명이 NVA, FVA로 변경됩니다. 또한, 업그레이드 시 주의해야 할 사항으로는 펌웨어 파일명 변경('A'→'R')이 필요하고, 업그레이드 완료 후 모델명이 NVA, FVA로 변경된다는 점입니다.
 
 Let's think about it step by step.
+If you don't have any context, you should say "관련된 문서가 없습니다.".
 
 Context: {context}
 
