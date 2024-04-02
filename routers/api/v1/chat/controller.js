@@ -34,11 +34,13 @@ exports.chatGPT = async (req, res) => {
       router.post('/chat', chatController.chatGPT);
     --------------------------------------------------
         `)
-    console.log(req.body);
+    const dbModels = global.DB_MODELS;
     const { question, history, company } = req.body;
 
     try {
         const answer = await chatGPT(question, history, company);
+        console.log(answer.content)
+        await dbModels.chat_warehouse({ company, question, answer: answer.content }).save();
         return res.status(200).json({
             answer,
             status: true
