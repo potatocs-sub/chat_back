@@ -13,13 +13,16 @@ async function main() {
         createSchema();
         console.log('Database Connected')
     })
+
+
 }
 main().catch((err) => console.log(err));
 
 /** 스키마 정의 */
 function createSchema() {
     const dbModels = {};
-    dbModels.chat_warehouse = require('../schemas/chat_warehouse')
+    dbModels.chat_warehouse = require('../schemas/chat_warehouse');
+    dbModels.chat_doc = require('../schemas/chat_doc');
 
     global.DB_MODELS = dbModels;
 }

@@ -7,8 +7,9 @@ const {
     RunnableSequence,
     RunnablePassthrough,
 } = require("@langchain/core/runnables");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const { StringOutputParser } = require("@langchain/core/output_parsers");
+
 
 const client = new MongoClient(process.env.MONGODB_URI || "");
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -93,6 +94,7 @@ const standaloneQuestionChain = RunnableSequence.from([
 
 
 exports.chatGPT = async (question, history, company) => {
+
     const retriever = vectorStore.asRetriever({
         searchType: "mmr",
         filter: { preFilter: { "company": { "$eq": company } } },

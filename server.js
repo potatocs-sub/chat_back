@@ -8,7 +8,7 @@ const { Server } = require('socket.io');
 
 // express 정의
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3600;
 
 // production, development
 if (process.env.NODE_ENV.trim() === 'producetion') {
