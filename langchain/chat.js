@@ -48,14 +48,20 @@ Answer the question based on the context below, and say "I don't know" if you ca
 You have to answer in Korean only.
 
 Examples:
-Question: 김치를 만드는 방법에 대해서 알려주세요
-Answer: 김치를 만드는 방법에 대한 정보를 찾지 못하였습니다.
+Question: 현재 휴가 상태가 이상해요. 어디에 문의해야 할까요?
+Answer: 휴가는 인사 담당자가 관리합니다. 현재 인사 담당자는 ooo부서의 ooo입니다. 
 
-Question: ai 뷰가드 업데이트 방법에 대해서 알려주세요
-Answer: 뷰가드 AI 업데이트 방법은 다음과 같습니다. 먼저, 스마트 러닝사이트 공유자료실에서 Firmware 메뉴로 이동하여 81번 뷰가드 AI 2단계 NVR 매뉴얼 및 펌웨어를 다운로드해야 합니다. 그리고 업그레이드를 위해 펌웨어 파일명을 변경해야 하며, 업그레이드 완료 후 모델명이 NVA, FVA로 변경됩니다. 또한, 업그레이드 시 주의해야 할 사항으로는 펌웨어 파일명 변경('A'→'R')이 필요하고, 업그레이드 완료 후 모델명이 NVA, FVA로 변경된다는 점입니다.
+Question: 회계 담당자를 알려주세요
+Answer: 회계 담당자는 ooo 입니다. 연락처는 010-xxxx-xxxx 입니다.
+
+Question: 현재 개발팀은 모두 몇 명인가요?
+Answer: 현재 개발팀은 모두 다섯명 입니다.
+
+Question: 회계 담당자가 하는 일은 무엇인가요?
+Answer: 회계 담장자는 주로 예산 수립, 월 분기 손익 추정 및 확정 보고, 서비스별 상세 손익 보고 등의 업무를 수행합니다. 현재 회계 담당자로는 이슬이와 임호균이 있습니다.
 
 Let's think about it step by step.
-If you don't have any context, you should say "관련된 문서가 없습니다.".
+If you don't have any context, you should say "관련된 정보가 없습니다".
 
 Context: {context}
 
@@ -99,27 +105,48 @@ exports.chatGPT = async (question, history, company) => {
         searchType: "mmr",
         filter: { preFilter: { "company": { "$eq": company } } },
         searchKwargs: {
-            k: 10,
-            fetchK: 50,
+            k: 100,
+            fetchK: 500,
             lambda: 0.25,
         },
     });
+    const temp = await standaloneQuestionChain.invoke({
+        question: question,
+        chat_history: history,
+    })
+
+    const retriever_answer = await retriever.invoke(temp)
+
+    let temp_retriever = '';
+    console.log(retriever_answer)
+    retriever_answer.map((answer) => {
+        temp_retriever += answer.pageContent
+    })
+    console.log(temp_retriever)
     const answerChain = RunnableSequence.from([
         {
-            context: retriever.pipe(formatDocumentsAsString),
-            question: new RunnablePassthrough(),
+            context: (input) => input.context,
+            question: (input) => input.question,
         },
         ANSWER_PROMPT,
         model,
     ]);
 
-    const conversationalRetrievalQAChain =
-        standaloneQuestionChain.pipe(answerChain);
+    const result = await answerChain.invoke({ context: temp_retriever, question: temp })
+    console.log(result)
+    return result;
 
-    return await conversationalRetrievalQAChain.invoke({
-        question: question,
-        chat_history: history,
-    });
+    // const conversationalRetrievalQAChain =
+    //     standaloneQuestionChain.pipe(answerChain);
+
+
+
+    // return await conversationalRetrievalQAChain.invoke({
+    //     question: question,
+    //     chat_history: history,
+    // });
+
+
 
 
 }
