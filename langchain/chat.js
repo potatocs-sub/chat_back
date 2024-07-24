@@ -16,57 +16,58 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const namespace = "langchain.test";
 const [dbName, collectionName] = namespace.split(".");
 const collection = client.db(dbName).collection(collectionName);
-const model = new ChatOpenAI({ openAIApiKey: OPENAI_API_KEY, temperature: 0, request_timeout: 40, model_name: "gpt-3.5-turbo-1106" });
+const model = new ChatOpenAI({ openAIApiKey: OPENAI_API_KEY, temperature: 0, request_timeout: 40, model_name: "gpt-3.5-turbo-0125" });
 
-const condenseQuestionTemplate = `Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question. 
-At the end of standalone question add this 'Answer the question in Korean language.' 
-If you do not know the answer reply with 'I am sorry'.
-Standalone questions contain key words for subsequent questions.
+const condenseQuestionTemplate = `
 
-Please refer to the chat history and convert it to an appropriate standalone question.
-If you have a keyword that is too different from the current question in the chat history, please do not reflect it when converting the question
-Lets's think step by step.
 
-Example:
-HumanMessage: '엘지 세탁기의 면 세탁 법에 대해서 설명해줘'
-Standalone question: '엘지 세탁기의 면 세탁 법에 대해서 설명해줄 수 있나요? Answer the question in Korean language.'
+단계별로 생각합니다.
+대화 내역과 후속 질문을 분석합니다.
+후속 질문에 필요한 핵심 내용을 추출합니다.
+후속 질문을 독립된 질문으로 재구성합니다.
+없는 내용을 억지로 만들려 하지 않습니다.
+대화 내역과 관련이 없는 후속 질문은 재구성 하지 않습니다.
 
-Chat History:
-{chat_history}
-Follow Up Input: {question}
-Standalone question:`;
+예시 대화:
+예시 사용자: 오늘 날씨가 어때요?
+예시 챗봇: 오늘 서울의 날씨는 맑고 온도는 약 25도입니다.
+
+예시 후속 질문: 비가 올 가능성은 있나요?
+
+예시 재구성 질문: 서울의 날씨가 맑고 온도가 25도인 오늘, 비가 올 가능성이 있나요?
+
+대화 내역: {chat_history}
+
+후속 질문: {question}
+
+재구성 질문:
+`;
 const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(
     condenseQuestionTemplate
 );
 
-const answerTemplate = `Write the final answer given the following extraction from long documents and questions.
-If you don't know the answer, answer that you don't know. Don't make up the answer.
-Respectfully answer that if the question is context-related, it is adjusted to answer only context-related questions.
-Answer the question based on the context below, and say "I don't know" if you can't answer the question based on the context.
+const answerTemplate = `
+context: {context}
+
+question: {question}
+
+context와 question을 참고하세요.
+당신은 사용자에게 정확한 정보를 전달해주는 전문가 추천 안내자 입니다.
+"context"에 주어진 내용을 분석하여 "question"의 내용이 가장 필요로 하는 사람을 추천해주세요.
+천천히 "context"의 내용을 꼼꼼히 모두 검토하고 논리적인 추론에 의해서 답변을 유도합니다.
+"context"에 없는 내용은 설명하지 않습니다.
+"context"에 있는 내용은 빠짐없이 설명하려 노력합니다.
+"context"의 내용을 모두 검토합니다.
+인원수 정보는 대답할 수 없습니다.
+직급은 사원 < 대리 < 과장 < 차장 < 부장 < 이사부장 < 이사 < 상무 < 전무 < 부사장 < 사장 < 부회장 < 회장 순으로 이어지는 서열입니다.
+담당자를 지정할 때 질문에 직급이 포함되어 있지 않다면 낮은 서열부터 추천합니다.
+정보 제공시 직책과 연락처 정보를 반드시 함께 제공합니다.
+인원수 정보를 물어본다면 "해당 정보는 답변드릴 수 없어요. 다른 내용으로 질문재 보시겠어요?" 라고 응답해야 합니다.
+적절한 내용을 찾을 수 없다면 "저에게 주어진 정보에서 질문자 님이 원하는 답변을 찾을 수 없었습니다. 다른 내용으로 질문해 보시겠어요?" 라고 응답해야 합니다.
 
 
-You have to answer in Korean only.
-
-Examples:
-Question: 현재 휴가 상태가 이상해요. 어디에 문의해야 할까요?
-Answer: 휴가는 인사 담당자가 관리합니다. 현재 인사 담당자는 ooo부서의 ooo입니다. 
-
-Question: 회계 담당자를 알려주세요
-Answer: 회계 담당자는 ooo 입니다. 연락처는 010-xxxx-xxxx 입니다.
-
-Question: 현재 개발팀은 모두 몇 명인가요?
-Answer: 현재 개발팀은 모두 다섯명 입니다.
-
-Question: 회계 담당자가 하는 일은 무엇인가요?
-Answer: 회계 담장자는 주로 예산 수립, 월 분기 손익 추정 및 확정 보고, 서비스별 상세 손익 보고 등의 업무를 수행합니다. 현재 회계 담당자로는 이슬이와 임호균이 있습니다.
-
-Let's think about it step by step.
-If you don't have any context, you should say "관련된 정보가 없습니다".
-
-Context: {context}
-
-Question: {question}
-Helpful answer in markdown:
+밝고 활발한 말투로 안내해 주세요.
+답변은 1~3개의 문장으로 제한합니다.
 `;
 const ANSWER_PROMPT = PromptTemplate.fromTemplate(answerTemplate);
 
@@ -100,13 +101,13 @@ const standaloneQuestionChain = RunnableSequence.from([
 
 
 exports.chatGPT = async (question, history, company) => {
-
+    console.log(history)
     const retriever = vectorStore.asRetriever({
         searchType: "mmr",
         filter: { preFilter: { "company": { "$eq": company } } },
         searchKwargs: {
-            k: 100,
-            fetchK: 500,
+            k: 50,
+            fetchK: 100,
             lambda: 0.25,
         },
     });
@@ -114,15 +115,14 @@ exports.chatGPT = async (question, history, company) => {
         question: question,
         chat_history: history,
     })
-
+    console.log(temp)
     const retriever_answer = await retriever.invoke(temp)
 
     let temp_retriever = '';
-    console.log(retriever_answer)
+    // console.log(retriever_answer)
     retriever_answer.map((answer) => {
-        temp_retriever += answer.pageContent
+        temp_retriever += answer.pageContent + '\n'
     })
-    console.log(temp_retriever)
     const answerChain = RunnableSequence.from([
         {
             context: (input) => input.context,
@@ -133,7 +133,7 @@ exports.chatGPT = async (question, history, company) => {
     ]);
 
     const result = await answerChain.invoke({ context: temp_retriever, question: temp })
-    console.log(result)
+
     return result;
 
     // const conversationalRetrievalQAChain =
