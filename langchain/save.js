@@ -44,8 +44,8 @@ exports.save_vector = async (file, company) => {
 
     const text_splitter = new RecursiveCharacterTextSplitter(
         {
-            chunkSize: 200,
-            chunkOverlap: 20,
+            chunkSize: 500,
+            chunkOverlap: 100,
         }
     )
     const texts = await text_splitter.splitDocuments(pages);

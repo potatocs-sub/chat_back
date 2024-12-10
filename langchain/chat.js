@@ -16,64 +16,63 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const namespace = "langchain.test";
 const [dbName, collectionName] = namespace.split(".");
 const collection = client.db(dbName).collection(collectionName);
-const model = new ChatOpenAI({ openAIApiKey: OPENAI_API_KEY, temperature: 0, request_timeout: 40, model_name: "gpt-3.5-turbo-0125" });
+const model = new ChatOpenAI({ openAIApiKey: OPENAI_API_KEY, temperature: 0.1, request_timeout: 3, modelName: "gpt-4o-mini" });
+
+
 
 const condenseQuestionTemplate = `
+주어진 대화 기록과 질문을 바탕으로 현재 질문의 문장을 일부 수정하여 새로운 질문을 생성해 주세요.
+대화 기록은 시간순서로 정렬되어 있으며 현재 질문과 연관이 있을수도 있습니다.
+
+다음 규칙을 반드시 준수하세요:
+1. 모호한 표현은 과거 대화 기록을 기반으로 명시적으로 변경하세요.
+2. 이전 대화 기록과 연관이 없다고 판단하는 경우 현재 질문만 활용하여 재구성하십시오.
+3. 질문에 답변하거나 정보를 제공하지 마세요.
+4. 이전 대화 기록과 연관이 있다고 판단하는 경우 현재 질문 만으로 이전 대화 내용을 이해할 수 있도록 연관 단어를 반드시 포함 하세요.
 
 
-단계별로 생각합니다.
-대화 내역과 후속 질문을 분석합니다.
-후속 질문에 필요한 핵심 내용을 추출합니다.
-후속 질문을 독립된 질문으로 재구성합니다.
-없는 내용을 억지로 만들려 하지 않습니다.
-대화 내역과 관련이 없는 후속 질문은 재구성 하지 않습니다.
+# 예시:
+대화 기록: 
+"Human: 시스템 담당자는 누구입니까?"
+"AI: 해당 업무는 홍길동이 담당하고 있습니다,"
+현재 질문: "그의 업무는 어떤게 있지?"
 
-예시 대화:
-예시 사용자: 오늘 날씨가 어때요?
-예시 챗봇: 오늘 서울의 날씨는 맑고 온도는 약 25도입니다.
+"홍길동의 업무는 어떤게 있지?"
 
-예시 후속 질문: 비가 올 가능성은 있나요?
+# 대화 기록 
+{chat_history}
 
-예시 재구성 질문: 서울의 날씨가 맑고 온도가 25도인 오늘, 비가 올 가능성이 있나요?
-
-대화 내역: {chat_history}
-
-후속 질문: {question}
-
-재구성 질문:
+# 현재 질문
+{question}
 `;
 const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(
     condenseQuestionTemplate
 );
 
 const answerTemplate = `
-context: {context}
+# system
+당신은 사용자의 질문의 핵심과 의도를 이해하고, 주어진 컨텍스트에서 사용자의 요구나 질문에 가장 적합한 전문가를 찾아서 제공하는 뛰어난 담당자 매칭 전문가로 이름은 POTATOCS봇입니다.
 
-question: {question}
+# Instruction
+당신의 임무는 다음의 컨텍스트를 검색하고 이를 기반으로 사용자의 질문을 해결할 수 있는 전문가를 추천하는 것입니다.
 
-context와 question을 참고하세요.
-당신은 사용자에게 정확한 정보를 전달해주는 전문가 추천 안내자 입니다.
-"context"에 주어진 내용을 분석하여 "question"의 내용이 가장 필요로 하는 사람을 추천해주세요.
-천천히 "context"의 내용을 꼼꼼히 모두 검토하고 논리적인 추론에 의해서 답변을 유도합니다.
-"context"에 없는 내용은 설명하지 않습니다.
-"context"에 있는 내용은 빠짐없이 설명하려 노력합니다.
-"context"의 내용을 모두 검토합니다.
-인원수 정보는 대답할 수 없습니다.
-직급은 사원 < 대리 < 과장 < 차장 < 부장 < 이사부장 < 이사 < 상무 < 전무 < 부사장 < 사장 < 부회장 < 회장 순으로 이어지는 서열입니다.
-담당자를 지정할 때 질문에 직급이 포함되어 있지 않다면 낮은 서열부터 추천합니다.
-정보 제공시 직책과 연락처 정보를 반드시 함께 제공합니다.
-인원수 정보를 물어본다면 "해당 정보는 답변드릴 수 없어요. 다른 내용으로 질문재 보시겠어요?" 라고 응답해야 합니다.
-적절한 내용을 찾을 수 없다면 "저에게 주어진 정보에서 질문자 님이 원하는 답변을 찾을 수 없었습니다. 다른 내용으로 질문해 보시겠어요?" 라고 응답해야 합니다.
+# 컨텍스트:
+{context}
 
 
-밝고 활발한 말투로 안내해 주세요.
-답변은 1~3개의 문장으로 제한합니다.
+# 필수 규칙
+1. 컨텍스트에 없는 내용을 절대로 지어서 답변하지는 마세요. 
+2. 질문과 동일한 언어로 응답하십시오.
+3. 제공되지 않은 정보에 대한 답변은 하지 않습니다.
+
+# 질문:
+{question}
 `;
 const ANSWER_PROMPT = PromptTemplate.fromTemplate(answerTemplate);
 
 const formatChatHistory = (chatHistory) => {
     const formattedDialogueTurns = chatHistory.map(
-        (dialogueTurn) => `Human: ${dialogueTurn[0]}\nAssistant: ${dialogueTurn[1]}`
+        (dialogueTurn) => `Human: ${dialogueTurn[0]}\nAI: ${dialogueTurn[1]}`
     );
     return formattedDialogueTurns.join("\n");
 };
@@ -101,22 +100,25 @@ const standaloneQuestionChain = RunnableSequence.from([
 
 
 exports.chatGPT = async (question, history, company) => {
-    console.log(history)
+
     const retriever = vectorStore.asRetriever({
         searchType: "mmr",
         filter: { preFilter: { "company": { "$eq": company } } },
         searchKwargs: {
-            k: 50,
-            fetchK: 100,
-            lambda: 0.25,
+            fetchK: 20,
+            lambda: 0.8,
         },
+        k: 20
     });
-    const temp = await standaloneQuestionChain.invoke({
-        question: question,
-        chat_history: history,
-    })
-    console.log(temp)
-    const retriever_answer = await retriever.invoke(temp)
+
+
+
+    // const temp = await standaloneQuestionChain.invoke({
+    //     question: question,
+    //     chat_history: history,
+    // })
+    // console.log(temp)
+    const retriever_answer = await retriever.invoke(question)
 
     let temp_retriever = '';
     // console.log(retriever_answer)
@@ -132,7 +134,7 @@ exports.chatGPT = async (question, history, company) => {
         model,
     ]);
 
-    const result = await answerChain.invoke({ context: temp_retriever, question: temp })
+    const result = await answerChain.invoke({ context: temp_retriever, question })
 
     return result;
 
