@@ -23,24 +23,16 @@ const s3Client = new S3Client({
 exports.save_vector = async (file, company) => {
 
     const client = new MongoClient(process.env.MONGODB_URI || "");
-
     const collection = client.db("langchain").collection("test");
-
-
     const filePath = await getFileFromS3(file.bucket, file.key, file.originalname)
-
-
     const loader = new PDFLoader(filePath);
-
     const pages = await loader.load();
-
 
     deleteFile(filePath)
 
     for (let page of pages) {
         page.metadata['company'] = company
     }
-
 
     const text_splitter = new RecursiveCharacterTextSplitter(
         {
