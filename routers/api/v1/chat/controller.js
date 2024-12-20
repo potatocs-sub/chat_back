@@ -126,7 +126,6 @@ exports.getList = async (req, res) => {
 
 }
 
-
 exports.deleteDoc = async (req, res) => {
     console.log(`
         --------------------------------------------------
@@ -137,7 +136,6 @@ exports.deleteDoc = async (req, res) => {
             `)
     const dbModels = global.DB_MODELS;
     const _id = req.params._id;
-
 
     try {
         // 지정된 ID로 문서를 찾아서 삭제
@@ -186,19 +184,26 @@ exports.getDoc = async (req, res) => {
     const key = req.body.key;
 
     try {
+        // S3에서 객체를 가져오기 위한 명령 생성
         const command = new GetObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET,
             Key: key,
-        })
+        });
 
+        // S3 클라이언트를 사용하여 객체 가져오기
         const response = await s3Client.send(command);
 
+        // 응답 헤더에 콘텐츠 타입 설정 (PDF 파일)
         res.setHeader('Content-Type', 'application/pdf');
+
+        // S3에서 가져온 PDF 데이터를 클라이언트에 스트리밍
         response.Body.pipe(res);
     } catch (err) {
-        console.error("[ ERROR ]", err);
+        console.error("[ ERROR ]", err); // 에러 로그 출력
+        // 에러 발생 시 클라이언트에 에러 메시지 반환
         return res.status(500).send({
-            message: "An error occured while get pdf data"
-        })
+            message: "An error occurred while getting pdf data"
+        });
     }
+
 }
