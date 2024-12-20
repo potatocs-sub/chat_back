@@ -18,8 +18,6 @@ const [dbName, collectionName] = namespace.split(".");
 const collection = client.db(dbName).collection(collectionName);
 const model = new ChatOpenAI({ openAIApiKey: OPENAI_API_KEY, temperature: 0.1, request_timeout: 3, modelName: "gpt-4o-mini" });
 
-
-
 const condenseQuestionTemplate = `
 주어진 대화 기록과 질문을 바탕으로 현재 질문의 문장을 일부 수정하여 새로운 질문을 생성해 주세요.
 대화 기록은 시간순서로 정렬되어 있으며 현재 질문과 연관이 있을수도 있습니다.
@@ -44,8 +42,33 @@ const condenseQuestionTemplate = `
 # 현재 질문
 {question}
 `;
+
+const condenseQuestionTemplateTEST = `
+주어진 대화 기록과 질문을 바탕으로 현재 질문의 문장을 일부 수정하여 새로운 질문을 생성해 주세요.
+대화 기록은 시간순서로 정렬되어 있으며 현재 질문과 연관이 있을수도 있습니다.
+
+다음 규칙을 반드시 준수하세요:
+1. 모호한 표현은 과거 대화 기록을 기반으로 명시적으로 변경하세요.
+2. 이전 대화 기록과 연관이 없다고 판단하는 경우 현재 질문만 활용하여 재구성하십시오.
+3. 질문에 답변하거나 정보를 제공하지 마세요.
+4. 이전 대화 기록과 연관이 있다고 판단하는 경우 현재 질문 만으로 이전 대화 내용을 이해할 수 있도록 연관 단어를 반드시 포함 하세요.
+
+# 예시:
+대화 기록: 
+"Human: 시스템 담당자는 누구입니까?"
+"AI: 해당 업무는 홍길동이 담당하고 있습니다,"
+현재 질문: "그의 업무는 어떤게 있지?"
+
+"홍길동의 업무는 어떤게 있지?"
+
+# 대화 기록 
+{chat_history}
+
+# 현재 질문
+{question}
+`;
 const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(
-    condenseQuestionTemplate
+    condenseQuestionTemplateTEST
 );
 
 const answerTemplate = `
