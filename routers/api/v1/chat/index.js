@@ -56,8 +56,6 @@ const upload = multer({
     }),
 });
 
-
-
 // const upload = multer({ storage });
 
 // 문서 등록
