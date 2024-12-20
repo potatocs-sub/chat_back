@@ -104,22 +104,26 @@ exports.getList = async (req, res) => {
 
 
     try {
-        const result = await collection.findOne({ _id: new ObjectId(user), company_id: new ObjectId(company) })
+        // MongoDB에서 사용자와 회사 ID를 기준으로 문서 조회
+        const result = await collection.findOne({ _id: new ObjectId(user), company_id: new ObjectId(company) });
 
-        // 조회할 수 없으면 권한이 없는거임
+        // 조회된 결과가 없으면 권한이 없다는 응답 반환
         if (!result) return res.status(401).json('권한 없음');
 
-        //
+        // 회사 ID에 해당하는 채팅 문서 목록 조회
         const list = await dbModels.chat_doc.find({ company });
 
+        // 성공적으로 문서 목록을 찾아서 클라이언트에 반환
         return res.status(200).send(list);
 
     } catch (err) {
-        console.error("[ ERROR ]", err);
+        console.error("[ ERROR ]", err); // 에러 로그 출력
+        // 에러 발생 시 클라이언트에 에러 메시지 반환
         return res.status(500).send({
             message: "An error occured while get doc list"
-        })
+        });
     }
+
 }
 
 
