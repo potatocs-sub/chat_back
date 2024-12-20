@@ -104,17 +104,15 @@ exports.chatGPT = async (question, history, company) => {
         k: 20
     });
 
-
-
     // const temp = await standaloneQuestionChain.invoke({
     //     question: question,
     //     chat_history: history,
     // })
-    // console.log(temp)
+
     const retriever_answer = await retriever.invoke(question)
 
     let temp_retriever = '';
-    // console.log(retriever_answer)
+
     retriever_answer.map((answer) => {
         temp_retriever += answer.pageContent + '\n'
     })
