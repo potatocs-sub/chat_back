@@ -56,23 +56,28 @@ exports.save_vector = async (file, company) => {
     await client.close();
 }
 
-
 const getFileFromS3 = async (bucket, key, name) => {
+    // S3에서 파일을 가져오기 위한 GetObjectCommand 생성
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+
+    // S3 클라이언트를 사용하여 명령 실행
     const response = await s3Client.send(command);
 
+    // 파일을 저장할 경로 설정
     const filePath = path.join('./', key);
-    const writeStream = fs.createWriteStream(filePath);
+    const writeStream = fs.createWriteStream(filePath); // 파일 쓰기 스트림 생성
 
+    // 응답 스트림을 파일로 파이프하기 위한 Promise 반환
     return new Promise((resolve, reject) => {
-        response.Body.pipe(writeStream);
-        response.Body.on("error", reject);
+        response.Body.pipe(writeStream); // S3에서 받은 데이터를 파일로 파이프
+        response.Body.on("error", reject); // 에러 발생 시 Promise 거부
         writeStream.on("close", () => {
-            resolve(filePath);
+            resolve(filePath); // 파일 쓰기가 완료되면 파일 경로 반환
         });
-    })
+    });
 }
 
+// 주어진 파일 경로의 파일을 삭제하는 함수
 const deleteFile = (filePath) => {
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath); // 파일 삭제
 }
