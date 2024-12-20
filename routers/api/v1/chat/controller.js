@@ -43,6 +43,7 @@ exports.addVector = async (req, res) => {
     }
 }
 
+// chatGPT 함수: 클라이언트의 질문을 처리하고 응답을 반환하는 비동기 함수
 exports.chatGPT = async (req, res) => {
     console.log(`
     --------------------------------------------------
@@ -50,23 +51,28 @@ exports.chatGPT = async (req, res) => {
       API  : 
       router.post('/chat', chatController.chatGPT);
     --------------------------------------------------
-        `)
-    const dbModels = global.DB_MODELS;
-    const { question, history, company } = req.body;
+        `);
+
+    const dbModels = global.DB_MODELS; // 데이터베이스 모델 가져오기
+    const { question, history, company } = req.body; // 요청 본체에서 질문, 채팅 기록, 회사 정보 추출
 
     try {
+        // chatGPT 함수 호출하여 답변 받기
         const answer = await chatGPT(question, history, company);
-        // console.log(answer)
+        // 데이터베이스에 질문과 답변 저장
         await dbModels.chat_warehouse({ company, question, answer: answer.content }).save();
+
+        // 클라이언트에 성공적인 응답 반환
         return res.status(200).json({
             answer,
             status: true
-        })
+        });
     } catch (err) {
-        console.error("[ ERROR ]", err);
+        console.error("[ ERROR ]", err); // 에러 로그 출력
+        // 에러 발생 시 클라이언트에 에러 메시지 반환
         return res.status(500).send({
             message: "An error occured while chating with GPT"
-        })
+        });
     }
 }
 
