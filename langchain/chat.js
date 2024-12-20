@@ -141,15 +141,9 @@ exports.chatGPT = async (question, history, company) => {
     // const conversationalRetrievalQAChain =
     //     standaloneQuestionChain.pipe(answerChain);
 
-
-
     // return await conversationalRetrievalQAChain.invoke({
     //     question: question,
     //     chat_history: history,
     // });
-
-
-
-
 }
 
