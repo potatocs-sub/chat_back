@@ -73,7 +73,6 @@ const getFileFromS3 = async (bucket, key, name) => {
     })
 }
 
-
 const deleteFile = (filePath) => {
     fs.unlinkSync(filePath);
 }
