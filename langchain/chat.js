@@ -50,7 +50,6 @@ const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(
 );
 
 const answerTemplate = `
-
 # system
 당신은 사용자의 질문의 핵심과 의도를 이해하고, 주어진 컨텍스트에서 사용자의 요구나 질문에 가장 적합한 전문가를 찾아서 제공하는 뛰어난 담당자 매칭 전문가로 이름은 POTATOCS봇입니다.
 
@@ -59,7 +58,6 @@ const answerTemplate = `
 
 # 컨텍스트:
 {context}
-
 
 # 필수 규칙
 1. 컨텍스트에 없는 내용을 절대로 지어서 답변하지는 마세요. 
