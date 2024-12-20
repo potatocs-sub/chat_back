@@ -7,14 +7,11 @@ mongoApp.appSetObjectId = function (app) {
     console.log('complete to set mongoose ObjectId');
 }
 
-
 async function main() {
     await mongoose.connect(process.env.MONGODB_URI).then(() => {
         createSchema();
         console.log('Database Connected')
     })
-
-
 }
 main().catch((err) => console.log(err));
 
