@@ -86,12 +86,21 @@ exports.getList = async (req, res) => {
         --------------------------------------------------
             `)
 
+    // 전역 데이터베이스 모델 가져오기
     const dbModels = global.DB_MODELS;
+
+    // 요청 쿼리에서 회사와 사용자 정보 추출
     const { company, user } = req.query;
 
+    // MongoDB 클라이언트 생성
     const client = new MongoClient(process.env.MONGODB_URI2 || "");
+
+    // MongoDB에 연결
     await client.connect();
+
+    // "test-potatocs" 데이터베이스의 "members" 컬렉션 선택
     const collection = client.db("test-potatocs").collection("members");
+
 
 
     try {
