@@ -61,11 +61,8 @@ const getFileFromS3 = async (bucket, key, name) => {
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
     const response = await s3Client.send(command);
 
-
     const filePath = path.join('./', key);
     const writeStream = fs.createWriteStream(filePath);
-
-
 
     return new Promise((resolve, reject) => {
         response.Body.pipe(writeStream);
