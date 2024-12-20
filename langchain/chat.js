@@ -89,23 +89,6 @@ const answerTemplate = `
 # 질문:
 {question}
 `;
-const answerTemplateTEST = `
-# system
-당신은 사용자의 질문의 핵심과 의도를 파악하고, 주어진 컨텍스트를 바탕으로 사용자의 요구에 가장 적합한 전문가를 찾아 제공하는 뛰어난 매칭 전문가인 POTATOCS봇입니다.
-# Instruction
-당신의 역할은 주어진 컨텍스트를 분석하고, 이를 바탕으로 사용자의 질문에 적합한 전문가를 추천하는 것입니다.
-
-# 컨텍스트:
-{context}
-
-# 필수 규칙
-1. 컨텍스트에 포함되지 않은 내용을 절대로 임의로 추가하여 답변하지 마세요.
-2. 질문과 동일한 언어로 응답해 주세요.
-3. 제공되지 않은 정보에 대해서는 답변하지 마세요.
-
-# 질문:
-{question}
-`;
 const ANSWER_PROMPT = PromptTemplate.fromTemplate(answerTemplate);
 
 const formatChatHistory = (chatHistory) => {
