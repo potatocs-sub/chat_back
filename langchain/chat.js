@@ -81,17 +81,16 @@ const vectorStore = new MongoDBAtlasVectorSearch(new OpenAIEmbeddings({ openAIAp
     embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
 });
 
-const standaloneQuestionChain = RunnableSequence.from([
-    {
-        question: (input) => input.question,
-        chat_history: (input) =>
-            formatChatHistory(input.chat_history),
-    },
-    CONDENSE_QUESTION_PROMPT,
-    model,
-    new StringOutputParser(),
-]);
-
+// const standaloneQuestionChain = RunnableSequence.from([
+//     {
+//         question: (input) => input.question,
+//         chat_history: (input) =>
+//             formatChatHistory(input.chat_history),
+//     },
+//     CONDENSE_QUESTION_PROMPT,
+//     model,
+//     new StringOutputParser(),
+// ]);
 
 exports.chatGPT = async (question, history, company) => {
 
