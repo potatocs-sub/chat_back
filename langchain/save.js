@@ -40,12 +40,9 @@ exports.save_vector = async (file, company) => {
             chunkOverlap: 100,
         }
     )
+
     const texts = await text_splitter.splitDocuments(pages);
-
-
-
     const embedding = new OpenAIEmbeddings({ openAIApiKey: OPENAI_API_KEY })
-
 
     // 정리 1 : 
     const vectorstore = await MongoDBAtlasVectorSearch.fromDocuments(
@@ -54,8 +51,7 @@ exports.save_vector = async (file, company) => {
         indexName: "vector_index", // The name of the Atlas search index. Defaults to "default"
         textKey: "text", // The name of the collection field containing the raw content. Defaults to "text"
         embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
-    }
-    )
+    })
 
     await client.close();
 }
