@@ -29,26 +29,33 @@ const { S3Client } = require("@aws-sdk/client-s3");
 //         cb(null, filename); // 파일 이름 설정
 //     }
 // });
+
+// S3 클라이언트 생성: AWS S3에 접근하기 위한 설정
 const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
+    region: process.env.AWS_REGION, // AWS 지역 설정
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY, // AWS 접근 키 ID
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // AWS 비밀 접근 키
     },
 });
+
+// multer를 사용하여 S3에 파일 업로드 설정
 const upload = multer({
     storage: multerS3({
-        s3: s3Client,
-        bucket: process.env.AWS_S3_BUCKET,
+        s3: s3Client, // 생성한 S3 클라이언트 사용
+        bucket: process.env.AWS_S3_BUCKET, // 업로드할 S3 버킷 설정
         metadata: function (req, file, cb) {
+            // 파일 메타데이터 설정
             cb(null, { fieldName: file.fieldName });
         },
         key: function (req, file, cb) {
+            // 파일 이름을 UTF-8로 변환하고 고유한 키 생성
             file.originalname = Buffer.from(file.originalname, "latin1").toString("utf8");
-            cb(null, `chat-file/${Date.now().toString()}.${file.originalname}`);
+            cb(null, `chat-file/${Date.now().toString()}.${file.originalname}`); // 파일 키 설정
         },
     }),
 });
+
 
 
 // const upload = multer({ storage });
