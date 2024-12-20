@@ -43,7 +43,6 @@ exports.addVector = async (req, res) => {
     }
 }
 
-
 exports.chatGPT = async (req, res) => {
     console.log(`
     --------------------------------------------------
