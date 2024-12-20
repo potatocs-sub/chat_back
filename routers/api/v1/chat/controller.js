@@ -140,30 +140,38 @@ exports.deleteDoc = async (req, res) => {
 
 
     try {
-        // 찾고 지우기
+        // 지정된 ID로 문서를 찾아서 삭제
         const result = await dbModels.chat_doc.findOneAndDelete({ _id });
 
-        // 삭제하려는 문서가 존재하지 않습니다.
+        // 삭제하려는 문서가 존재하지 않으면 404 응답 반환
         if (!result) return res.status(404).send("server error");
 
+        // MongoDB 클라이언트 생성 및 연결
         const client = new MongoClient(process.env.MONGODB_URI || "");
         const collection = client.db("langchain").collection("test");
+
+        // 해당 문서의 source 키와 일치하는 모든 문서 삭제
         await collection.deleteMany({ source: result.saveKey });
 
+        // S3에서 객체 삭제 명령 생성
         const command = new DeleteObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET,
             Key: result.saveKey,
-        })
+        });
+
+        // S3에서 객체 삭제 실행
         const response = await s3Client.send(command);
 
-
-        return res.status(200).send({ message: 'success' })
+        // 성공적으로 삭제되었음을 클라이언트에 응답
+        return res.status(200).send({ message: 'success' });
     } catch (err) {
-        console.error("[ ERROR ]", err);
+        console.error("[ ERROR ]", err); // 에러 로그 출력
+        // 에러 발생 시 클라이언트에 에러 메시지 반환
         return res.status(500).send({
-            message: "An error occured white delete doc."
-        })
+            message: "An error occurred while deleting doc."
+        });
     }
+
 }
 
 exports.getDoc = async (req, res) => {
