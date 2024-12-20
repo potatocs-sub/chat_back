@@ -56,7 +56,7 @@ exports.chatGPT = async (req, res) => {
 
     try {
         const answer = await chatGPT(question, history, company);
-        console.log(answer)
+        // console.log(answer)
         await dbModels.chat_warehouse({ company, question, answer: answer.content }).save();
         return res.status(200).json({
             answer,
