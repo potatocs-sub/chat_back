@@ -81,9 +81,6 @@ const vectorStore = new MongoDBAtlasVectorSearch(new OpenAIEmbeddings({ openAIAp
     embeddingKey: "embedding", // The name of the collection field containing the embedded text. Defaults to "embedding"
 });
 
-
-
-
 const standaloneQuestionChain = RunnableSequence.from([
     {
         question: (input) => input.question,
